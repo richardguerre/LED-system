@@ -52,7 +52,11 @@ void updateSystem(uint8_t switchPin, uint8_t ledPin, unsigned long &pastTime, un
   delay(20);
   if (digitalRead(switchPin) == LOW)
   {
-    delay(40);
+    delay(20);
+  }
+  if (digitalRead(switchPin) == LOW)
+  {
+    delay(20);
   }
   if (digitalRead(switchPin) == LOW)
   {
