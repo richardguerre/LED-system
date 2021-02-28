@@ -19,10 +19,9 @@ unsigned long
     bottom_TimeDifference = 0;
 // initialize switch variables
 int top_SwitchCounter, bottom_SwitchCounter;
-int isTopSwitchActive = false, isBottomSwitchActive = false;
 // initialize brightness variables;
 const int base = 255;
-const int low = 0.1 * base, med = 0.5 * base, high = 0.9 * base;
+const int low = 0.05 * base, med = 0.3 * base, high = 0.9 * base;
 
 void setup()
 {
@@ -43,93 +42,104 @@ void setup()
 
 void loop()
 {
-  bottom_PastTime = millis();
+  updateSystem(bottom_SwitchPin, bottom_LedPin, bottom_PastTime, bottom_TimeDifference, bottom_SwitchCounter);
+  updateSystem(top_SwitchPin, top_LedPin, top_PastTime, top_TimeDifference, top_SwitchCounter);
+}
+
+void updateSystem(uint8_t switchPin, uint8_t ledPin, unsigned long &pastTime, unsigned long &timeDiff, int &counter)
+{
+  pastTime = millis();
   delay(20);
-  if (digitalRead(bottom_SwitchPin) == LOW)
+  if (digitalRead(switchPin) == LOW)
   {
-    delay(680);
+    delay(40);
   }
-  if (digitalRead(bottom_SwitchPin) == LOW)
+  if (digitalRead(switchPin) == LOW)
+  {
+    delay(80);
+  }
+  if (digitalRead(switchPin) == LOW)
+  {
+    delay(160);
+  }
+  if (digitalRead(switchPin) == LOW)
+  {
+    delay(320);
+  }
+  if (digitalRead(switchPin) == LOW)
   {
     delay(200);
   }
 
-  bottom_TimeDifference = millis() - bottom_PastTime;
+  timeDiff = millis() - pastTime;
   // Serial.print("timeDifference: ");
-  // Serial.print(bottom_TimeDifference);
+  // Serial.print(timeDiff);
   // Serial.print("\n");
 
-  if (bottom_TimeDifference >= 50 && bottom_TimeDifference < 800)
+  if (timeDiff >= 50 && timeDiff < 700)
   {
-    bottom_SwitchCounter = (bottom_SwitchCounter + 1) % 4;
-    switch (bottom_SwitchCounter)
+    counter = (counter + 1) % 4;
+    switch (counter)
     {
     case 0:
-      analogWrite(bottom_LedPin, 0);
+      fade(ledPin, high, 0);
       break;
     case 1:
-      analogWrite(bottom_LedPin, low);
+      fade(ledPin, 0, low);
       break;
     case 2:
-      analogWrite(bottom_LedPin, med);
+      fade(ledPin, low, med);
       break;
     case 3:
-      analogWrite(bottom_LedPin, high);
+      fade(ledPin, med, high);
       break;
     default:
-      analogWrite(bottom_LedPin, 0);
+      fade(ledPin, high, 0);
       break;
     }
   }
-  else if (bottom_TimeDifference >= 800)
+  else if (timeDiff >= 700)
   {
-    analogWrite(bottom_LedPin, 0);
-    bottom_SwitchCounter = 4;
-    delay(2000);
+    analogWrite(ledPin, 0);
+    counter = 4;
+    delay(700);
   }
+}
 
-  top_PastTime = millis();
-  delay(20);
-  if (digitalRead(top_SwitchPin) == LOW)
+void fade(uint8_t pin, int from, int to)
+{
+  int fadeDelay = 5;
+  log("start fade");
+  if (from < to)
   {
-    delay(680);
-  }
-  if (digitalRead(top_SwitchPin) == LOW)
-  {
-    delay(200);
-  }
-
-  top_TimeDifference = millis() - top_PastTime;
-  // Serial.print("timeDifference: ");
-  // Serial.print(top_TimeDifference);
-  // Serial.print("\n");
-
-  if (top_TimeDifference >= 50 && top_TimeDifference < 800)
-  {
-    top_SwitchCounter = (top_SwitchCounter + 1) % 4;
-    switch (top_SwitchCounter)
+    for (int i = from; i <= to; i++)
     {
-    case 0:
-      analogWrite(top_LedPin, 0);
-      break;
-    case 1:
-      analogWrite(top_LedPin, low);
-      break;
-    case 2:
-      analogWrite(top_LedPin, med);
-      break;
-    case 3:
-      analogWrite(top_LedPin, high);
-      break;
-    default:
-      analogWrite(top_LedPin, 0);
-      break;
+      analogWrite(pin, i);
+      delay(fadeDelay);
     }
   }
-  else if (top_TimeDifference >= 800)
+  else
   {
-    analogWrite(top_LedPin, 0);
-    top_SwitchCounter = 4;
-    delay(2000);
+    for (int i = from; i >= to; i--)
+    {
+      analogWrite(pin, i);
+      delay(fadeDelay);
+    }
   }
+  log("end fade");
+}
+
+void logLine(String s)
+{
+  String line = "-------------";
+  log(line + s + line);
+}
+
+void log(String s)
+{
+  Serial.println(s);
+}
+void log(int n)
+{
+  Serial.println(n);
 }
